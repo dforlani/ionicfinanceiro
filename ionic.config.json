@@ -1,0 +1,7 @@
+{
+  "name": "financeiro",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react"
+}
