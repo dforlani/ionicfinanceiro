@@ -36,6 +36,43 @@ import './theme/variables.css';
 import FormRecebidos from './pages/recebidos/form/FormRecebidos';
 import FormDespesas from './pages/despesas/form/FormDespesas';
 
+/* FIREBASE IMPORTS */
+/*<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/8.0.1/firebase-app.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+
+<script>
+  // Your web app's Firebase configuration
+  var firebaseConfig = {
+    apiKey: "AIzaSyCMZkXH2bbSxa2xn2p2_iYqV350Dh0z8ks",
+    authDomain: "financeiro-react-67dc5.firebaseapp.com",
+    databaseURL: "https://financeiro-react-67dc5.firebaseio.com",
+    projectId: "financeiro-react-67dc5",
+    storageBucket: "financeiro-react-67dc5.appspot.com",
+    messagingSenderId: "183999270764",
+    appId: "1:183999270764:web:4a22cf8c957e4ec6366d49"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+</script>*/
+
+import firebase from 'firebase/app';
+
+//TODO: mudar para um arquivo separado colocar no .gitinore
+var firebaseConfig = {
+  apiKey: "AIzaSyCMZkXH2bbSxa2xn2p2_iYqV350Dh0z8ks",
+  authDomain: "financeiro-react-67dc5.firebaseapp.com",
+  databaseURL: "https://financeiro-react-67dc5.firebaseio.com",
+  projectId: "financeiro-react-67dc5",
+  storageBucket: "financeiro-react-67dc5.appspot.com",
+  messagingSenderId: "183999270764",
+  appId: "1:183999270764:web:4a22cf8c957e4ec6366d49"
+};
+
+firebase.initializeApp(firebaseConfig);
+
 const App: React.FC = () => (
 
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   IonButton,
   IonCard,
@@ -41,6 +41,8 @@ import { Route, Redirect, Router } from "react-router";
 import { IonReactRouter } from "@ionic/react-router";
 import { Link } from "react-router-dom";
 import { useHistory } from "react-router-dom";
+import ItemList from "../ItemList";
+import AddItem from "../AddItem";
 
 const Saldo: React.FC = () => {
   let history = useHistory();
@@ -51,6 +53,8 @@ const Saldo: React.FC = () => {
   const chamarDespesas = () => {
     history.push("/tab3");   
   };
+
+  const [current, setCurrent]= useState(null);
 
   return (
     <IonPage>
@@ -124,6 +128,19 @@ const Saldo: React.FC = () => {
         </IonButton>
 
         <IonButton routerLink='/tab3'>tab3</IonButton>
+
+        {}
+        <IonCard>
+          <IonCardHeader>
+          <h3>Lista</h3>
+          </IonCardHeader>
+          <IonCardContent>
+            <AddItem initialValue={current} clear={()=>setCurrent(null)}/>
+          </IonCardContent>
+          {}
+          <ItemList doEdit={setCurrent}/>
+
+        </IonCard>
       </IonContent>
     </IonPage>
   );
