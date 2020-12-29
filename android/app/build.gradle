@@ -15,21 +15,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-    }
-    signingConfigs{
-        release{
-            storeFile file("main.keystore")
-            storePassword '4311336'
-            keyAlias 'financeiro-react'
-            keyPassword '4311336'
-        }
-        debug{
-            storeFile file("main.keystore")
-            storePassword '4311336'
-            keyAlias 'financeiro-react'
-            keyPassword '4311336'
-        }
-    }
+    }  
 }
 
 repositories {

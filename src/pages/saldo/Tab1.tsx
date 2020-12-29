@@ -75,7 +75,7 @@ const Saldo: React.FC = () => {
                 <IonCol class="ion-text-center">Saldo do mês</IonCol>
               </IonRow>
               <IonRow>
-                <IonCol class="ion-text-center"> R$ 100,00</IonCol>
+                <IonCol class="ion-text-center"> R$ 200,00</IonCol>
               </IonRow>
             </IonGrid>
           </h2>
