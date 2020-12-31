@@ -24,6 +24,7 @@ export default function AddItem({ initialValue, clear }) {
     console.log("entrou");
     console.log(initialValue);
     if (initialValue) {
+      //se tem initialValue, é um item pra editar
       console.log("entrou2");
       await collectionRef
         .doc(initialValue)
@@ -33,6 +34,7 @@ export default function AddItem({ initialValue, clear }) {
       setitem("");
       clear();
     } else {
+      //senão, é um item pra adicionar
       await collectionRef.add({ name: item, createdOn: new Date().getTime() });
       setitem("");
       clear();

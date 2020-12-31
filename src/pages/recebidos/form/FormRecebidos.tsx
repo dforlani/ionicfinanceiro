@@ -4,24 +4,17 @@ import {
   IonBackButton,
   IonButton,
   IonButtons,
-  IonCol,
   IonContent,
   IonDatetime,
-  IonFab,
-  IonFabButton,
-  IonGrid,
   IonHeader,
   IonIcon,
   IonInput,
   IonItem,
-  IonItemDivider,
   IonLabel,
-  IonList,
   IonListHeader,
   IonPage,
   IonRadio,
   IonRadioGroup,
-  IonRow,
   IonSelect,
   IonSelectOption,
   IonTitle,
@@ -29,98 +22,62 @@ import {
   IonToolbar,
 } from "@ionic/react";
 
-import { SQLite, SQLiteObject } from "@ionic-native/sqlite";
 
 import "./FormRecebidos.css";
 import {
-  addOutline,
-  chevronBack,
-  chevronForward,
-  save,
   saveOutline,
-  text,
-  trash,
-  trashBin,
   trashOutline,
 } from "ionicons/icons";
+import { FirebaseLancamento } from "../../../services/FirebaseLancamento";
+import { Lancamento } from "../../models/Lancamento";
 
-const FormRecebidos: React.FC = () => {
+const FormRecebidos: React.FC<{ lancamentoEdit: Lancamento }> = ({lancamentoEdit}) => {
+  let auxLanc;
+  if(lancamentoEdit == undefined){
+    auxLanc = new Lancamento();
+  }else{
+    auxLanc = lancamentoEdit;
+  }
+
+  const [lancamento, setLancamento] = useState<Lancamento>(auxLanc);
+
+  const setLancamentoIdentificado = (event: CustomEvent, id: string) => {
+    setLancamento((prevLancamento) => ({
+      ...prevLancamento,
+      [id]: event.detail.value!,
+    }));    
+  };
+
   const [dataRecebimento, setDataRecebimento] = useState<string>();
 
-  const [valor, setValor] = useState<number>();
+  // const [valor, setValor] = useState<string>();
 
-  const [titulo, setTitulo] = useState<string>();
+  // const [titulo, setTitulo] = useState<string>();
 
-  const [grupo, setGrupo] = useState<string>();
+  // const [grupo, setGrupo] = useState<string>();
 
-  const [tipo, setTipo] = useState<string>("recebido");
+  // const [tipo, setTipo] = useState<string>("recebido");
 
-  const [vezesRepetir, setVezesRepetir] = useState<number>();
-  const [isRepetir, setIsRepetir] = useState<boolean>();
+  // const [vezesRepetir, setVezesRepetir] = useState<number>();
+
+  // const [isRepetir, setIsRepetir] = useState<boolean>();
 
   //FUNÇÕES DO BANCO DE DADOS
   const [showAlert, setShowAlert] = useState(false);
 
-  const getDB = (): Promise<SQLiteObject> => {
-    return SQLite.create({
-      name: "data.db",
-      location: "default",
-    });
-  };
-
-  const initDb = (): void => {
-    console.log("initDB fired!");
+  const salvarRecebido = () => {
+    console.log("oi");
     try {
-      getDB().then(async (db: SQLiteObject) => {
-        try {
-          const create = await db.executeSql(
-            "create table if not exists recebido(" +
-              "pk_recebido INTEGER NOT NULL PRIMARY KEY," +
-              "titulo VARCHAR(80)," +
-              "grupo VARCHAR(80)," +
-              "tipo VARCHAR(80)," +
-              "valor DECIMAL(2)," +
-              "data_recebimento DATE" +
-              ")",
-            []
-          );
-          await console.log("Table created/exists. Msg: ", create);
-        } catch (e) {
-          console.log("SQL error: ", e);
-        }
-      });
+      let fb: FirebaseLancamento = new FirebaseLancamento();
+      fb.salvar(lancamento);
+      window.history.back();
     } catch (e) {
       setShowAlert(true);
       console.log("please use a device: ", e);
     }
   };
 
-  const teste = (retorno :String):Boolean =>{
-    console.log('oi');
-    return true;
-  }
-
-  const inserirRecebido = () => {
-    initDb();
-
-    try {
-      getDB().then(async (db: SQLiteObject) => {
-        try {
-          const insert = await db.executeSql(
-            "insert into recebido ( titulo, grupo, tipo, valor, data_recebimento)" +
-              "values (?, ?, ?, ?, ?)",
-            [titulo, grupo, tipo, valor, dataRecebimento]
-          );
-          await console.log("Inserted " + titulo, insert);
-        } catch (e) {
-          console.log("SQL error: ", e);
-        }
-      });
-    } catch (e) {
-      setShowAlert(true);
-      console.log("please use a device: ", e);
-    }
-  };
+  
   // FIM DAS FUNÇÕES DO BANCO DE DADOS
 
   return (
@@ -136,7 +93,7 @@ const FormRecebidos: React.FC = () => {
             <IonButton>
               <IonIcon color="danger" icon={trashOutline} />
             </IonButton>
-            <IonButton onClick={(e) => inserirRecebido()}>
+            <IonButton onClick={() => salvarRecebido()}>
               <IonIcon color="success" icon={saveOutline} />
             </IonButton>
           </IonButtons>
@@ -146,17 +103,17 @@ const FormRecebidos: React.FC = () => {
         <IonItem>
           <IonLabel position="floating">Título</IonLabel>
           <IonInput
-            value={titulo}
-            onIonChange={(e) => setTitulo(e.detail.value!)}
+            value={lancamento.titulo}
+            onIonChange={(e) => setLancamentoIdentificado(e, "titulo")}
           ></IonInput>
         </IonItem>
 
         <IonItem>
           <IonLabel>Grupo</IonLabel>
           <IonSelect
-            value={grupo}
             placeholder="Grupo"
-            onIonChange={(e) => setGrupo(e.detail.value)}
+            value={lancamento.grupo}
+            onIonChange={(e) => setLancamentoIdentificado(e, "grupo")}
           >
             <IonSelectOption value="casa">Casa</IonSelectOption>
             <IonSelectOption value="mercado">Mercado</IonSelectOption>
@@ -165,8 +122,8 @@ const FormRecebidos: React.FC = () => {
         </IonItem>
 
         <IonRadioGroup
-          value={tipo}
-          onIonChange={(e) => setTipo(e.detail.value)}
+          value={lancamento.tipo}
+          onIonChange={(e) => setLancamentoIdentificado(e, "tipo")}
         >
           <IonListHeader>
             <IonLabel>Tipo</IonLabel>
@@ -186,33 +143,30 @@ const FormRecebidos: React.FC = () => {
         <IonItem>
           <IonLabel>Repetir?</IonLabel>
           <IonToggle
-            checked={isRepetir}
-          //  onIonChange={(e) => isNaN(e.detail.value) && e.detail.value == 'on'? 
-            // teste(e.detail.value): setIsRepetir(false)}
-            onIonChange={(e) => setIsRepetir(e.detail.checked)}
+            checked={lancamento.isRepetir}
+            onIonChange={(e) => setLancamentoIdentificado(e, "isRepetir")}
             color="primary"
           />
         </IonItem>
-        {isRepetir ? 
-        ( <IonItem>
-          <IonLabel position="floating">Quantas Vezes?</IonLabel>
-          <IonInput
-            type="number"
-            value={vezesRepetir}
-            onIonChange={(e) => setVezesRepetir(parseInt(e.detail.value!, 0))}
-          ></IonInput>
-        </IonItem>
-          
+        {lancamento.isRepetir ? (
+          <IonItem>
+            <IonLabel position="floating">Quantas Vezes?</IonLabel>
+            <IonInput
+              type="number"
+              value={lancamento.vezesRepetir}
+              onIonChange={(e) => setLancamentoIdentificado(e, "vezesRepetir")}
+            ></IonInput>
+          </IonItem>
         ) : (
-          console.log('toi')
+          console.log("toi")
         )}
 
         <IonItem>
           <IonLabel position="floating">Valor</IonLabel>
           <IonInput
             type="number"
-            value={valor}
-            onIonChange={(e) => setValor(parseInt(e.detail.value!, 2))}
+            value={lancamento.valor}
+            onIonChange={(e) => setLancamentoIdentificado(e, "valor")}
           ></IonInput>
         </IonItem>
         <IonItem>

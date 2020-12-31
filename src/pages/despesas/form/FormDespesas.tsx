@@ -44,13 +44,10 @@ import { Lancamento } from "../../models/Lancamento";
 const FormDespesas: React.FC = () => {
   const [lancamento, setLancamento] = useState<Lancamento>(new Lancamento());
 
-  const setLancamentoIdentificado = (event: CustomEvent, id: string) => {
-    setLancamento((prevLancamento) => ({
-      ...prevLancamento,
-      [id]: event.detail.value!,
-    }));
-    console.log(lancamento);
-  };
+  // const setLancamentoIdentificado = (event: CustomEvent, id: string) => {
+  //   setLancamento((prevLancamento) => ({...prevLancamento,  [id]: event.detail.value!,   }));
+  //   console.log(lancamento);
+  // };
 
  
 
@@ -78,7 +75,7 @@ const FormDespesas: React.FC = () => {
           <IonLabel position="floating">Título</IonLabel>
           <IonInput
             value={lancamento.titulo}
-            onIonChange={(e) => setLancamentoIdentificado(e, "titulo")}
+            // onIonChange={(e) => setLancamentoIdentificado(e, "titulo")}
           ></IonInput>
         </IonItem>
 
@@ -87,7 +84,7 @@ const FormDespesas: React.FC = () => {
           <IonSelect
             value={lancamento.grupo}
             placeholder="Grupo"
-            onIonChange={(e) => setLancamentoIdentificado(e, "grupo")}
+            // onIonChange={(e) => setLancamentoIdentificado(e, "grupo")}
           >
             <IonSelectOption value="casa">Casa</IonSelectOption>
             <IonSelectOption value="mercado">Mercado</IonSelectOption>
@@ -98,7 +95,7 @@ const FormDespesas: React.FC = () => {
         <IonList>
           <IonRadioGroup
             value={lancamento.tipo}
-            onIonChange={(e) => setLancamentoIdentificado(e, "tipo")}
+            // onIonChange={(e) => setLancamentoIdentificado(e, "tipo")}
           >
             <IonListHeader>
               <IonLabel>Tipo</IonLabel>
@@ -121,7 +118,7 @@ const FormDespesas: React.FC = () => {
           <IonInput
             type="number"
             value={lancamento.valor}
-            onIonChange={(e) => setLancamentoIdentificado(e, "valor")}
+            // onIonChange={(e) => setLancamentoIdentificado(e, "valor")}
           ></IonInput>
         </IonItem>
         <IonItem>
@@ -130,7 +127,7 @@ const FormDespesas: React.FC = () => {
             displayFormat="DD/MM/YYYY"
             value={lancamento.data.toString()}
             placeholder="Data"
-            onIonChange={(e) => setLancamentoIdentificado(e, "data")}
+            // onIonChange={(e) => setLancamentoIdentificado(e, "data")}
           ></IonDatetime>
         </IonItem>
       </IonContent>

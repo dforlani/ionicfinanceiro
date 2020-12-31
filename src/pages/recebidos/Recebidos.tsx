@@ -11,6 +11,7 @@ import {
   IonIcon,
   IonItem,
   IonLabel,
+  IonList,
   IonPage,
   IonRow,
   IonTitle,
@@ -18,9 +19,46 @@ import {
 } from "@ionic/react";
 import ExploreContainer from "../../components/ExploreContainer";
 import "./Recebidos.css";
-import { addOutline, arrowForwardCircle, chevronBack, chevronForward } from "ionicons/icons";
+import {
+  addOutline,
+  arrowForwardCircle,
+  chevronBack,
+  chevronForward,
+} from "ionicons/icons";
+import Item from "../Item";
+import { useCollection } from "react-firebase-hooks/firestore";
+import firebase from "firebase";
+import { FirebaseLancamento } from "../../services/FirebaseLancamento";
+import { Lancamento } from "../models/Lancamento";
+import { Route } from "react-router";
+import FormRecebidos from "./form/FormRecebidos";
+
+const listaLancamentos: Lancamento[] = [];
 
 const Recebidos: React.FC = () => {
+  let fb: FirebaseLancamento = new FirebaseLancamento();
+
+  const [value, loading] = useCollection(fb.listarTodos(listaLancamentos), {
+    snapshotListenOptions: { includeMetadataChanges: true },
+  });
+
+  const alterarLancamento = (lanc: Lancamento) => {
+    console.log("alterar");
+    return (
+      <Route
+        exact
+        path="/formrecebidos"
+        
+        render={(props) => {
+          return <FormRecebidos lancamentoEdit={lanc} {...props} />;
+        }}
+      />
+    );
+  };
+
+  console.log("value");
+  console.log(value);
+  console.log("value2");
   return (
     <IonPage>
       <IonHeader>
@@ -54,10 +92,26 @@ const Recebidos: React.FC = () => {
             <IonTitle size="large">Tab 2</IonTitle>
           </IonToolbar>
         </IonHeader>
-       
 
-        <IonFab vertical="bottom"  horizontal="end" slot="fixed">
-          <IonFabButton routerLink='/formrecebidos' color='success'>
+        <IonList id="listaLancamento">
+          {value &&
+            value.docs.map((doc: any) => {
+              //retorna doc.data() com Lancamento
+              return (
+                <IonItem onClick={() => alterarLancamento(doc.data().key)}>
+                  <IonLabel>
+                    <h5>{doc.data().titulo}</h5>
+                    <p>{doc.data().grupo}</p>
+                  </IonLabel>
+
+                  <h5>{doc.data().valor} </h5>
+                </IonItem>
+              );
+            })}
+        </IonList>
+
+        <IonFab vertical="bottom" horizontal="end" slot="fixed">
+          <IonFabButton routerLink="/formrecebidos" color="success">
             <IonIcon icon={addOutline} />
           </IonFabButton>
         </IonFab>
