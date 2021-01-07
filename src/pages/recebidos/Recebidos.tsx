@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   IonBackButton,
+  IonButton,
   IonButtons,
   IonCol,
   IonContent,
@@ -12,6 +13,7 @@ import {
   IonItem,
   IonLabel,
   IonList,
+  IonModal,
   IonPage,
   IonRow,
   IonTitle,
@@ -32,28 +34,33 @@ import { FirebaseLancamento } from "../../services/FirebaseLancamento";
 import { Lancamento } from "../models/Lancamento";
 import { Route } from "react-router";
 import FormRecebidos from "./form/FormRecebidos";
+import MyModal from "./form/MyModal";
 
-const listaLancamentos: Lancamento[] = [];
+
 
 const Recebidos: React.FC = () => {
   let fb: FirebaseLancamento = new FirebaseLancamento();
 
-  const [value, loading] = useCollection(fb.listarTodos(listaLancamentos), {
-    snapshotListenOptions: { includeMetadataChanges: true },
+  const [value, loading] = useCollection(fb.listarTodosByTipo(Lancamento.TIPO_RECEBIDO), {
+    snapshotListenOptions: { includeMetadataChanges: true }, 
   });
 
-  const alterarLancamento = (lanc: Lancamento) => {
+  const [showModal, setShowModal] = useState(false);
+  const [lancamento, setLancamento] = useState(new Lancamento());
+
+  //esta tela vai salvar os lançamentos como recebidos
+  lancamento.tipo = Lancamento.TIPO_RECEBIDO;
+
+  const abrirFormRecebido = (lanc: Lancamento) => {
     console.log("alterar");
-    return (
-      <Route
-        exact
-        path="/formrecebidos"
-        
-        render={(props) => {
-          return <FormRecebidos lancamentoEdit={lanc} {...props} />;
-        }}
-      />
-    );
+    setLancamento(lanc);
+    console.log("alterarLancamento ", lanc.valor);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    console.log("fecha");
+    setShowModal(false);
   };
 
   console.log("value");
@@ -93,17 +100,34 @@ const Recebidos: React.FC = () => {
           </IonToolbar>
         </IonHeader>
 
+        <IonModal isOpen={showModal} cssClass="my-custom-class">
+          <FormRecebidos
+            // ={"oi"}
+            doc={lancamento}
+            doClose={() => {
+              console.log("recebidos doClose");
+              closeModal();
+            }}
+      
+          />
+        </IonModal>
+
         <IonList id="listaLancamento">
-          {value &&
-            value.docs.map((doc: any) => {
-              //retorna doc.data() com Lancamento
+          {!loading && value &&
+            value.docs.map((doc:any) => {
+              let auxLancamento:Lancamento;
+              auxLancamento = doc.data();
+
+              //atribui a key pra termos o código de documento, o que vai facilitar na remoção e edição
+              auxLancamento.key = doc.id; 
+              auxLancamento.tipo = Lancamento.TIPO_RECEBIDO;
+              
               return (
-                <IonItem onClick={() => alterarLancamento(doc.data().key)}>
+                <IonItem onClick={() => abrirFormRecebido(auxLancamento)}>                  
                   <IonLabel>
                     <h5>{doc.data().titulo}</h5>
-                    <p>{doc.data().grupo}</p>
+                    <p>{doc.data().grupo}</p>                   
                   </IonLabel>
-
                   <h5>{doc.data().valor} </h5>
                 </IonItem>
               );
@@ -111,7 +135,7 @@ const Recebidos: React.FC = () => {
         </IonList>
 
         <IonFab vertical="bottom" horizontal="end" slot="fixed">
-          <IonFabButton routerLink="/formrecebidos" color="success">
+          <IonFabButton onClick={() => abrirFormRecebido(new Lancamento())} color="success">
             <IonIcon icon={addOutline} />
           </IonFabButton>
         </IonFab>

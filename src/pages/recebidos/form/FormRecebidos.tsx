@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+
 import {
   IonAlert,
   IonBackButton,
@@ -12,6 +13,7 @@ import {
   IonItem,
   IonLabel,
   IonListHeader,
+  IonModal,
   IonPage,
   IonRadio,
   IonRadioGroup,
@@ -22,84 +24,120 @@ import {
   IonToolbar,
 } from "@ionic/react";
 
-
-import "./FormRecebidos.css";
-import {
-  saveOutline,
-  trashOutline,
-} from "ionicons/icons";
+import { arrowBack, document, trash } from "ionicons/icons";
 import { FirebaseLancamento } from "../../../services/FirebaseLancamento";
 import { Lancamento } from "../../models/Lancamento";
 
-const FormRecebidos: React.FC<{ lancamentoEdit: Lancamento }> = ({lancamentoEdit}) => {
-  let auxLanc;
-  if(lancamentoEdit == undefined){
-    auxLanc = new Lancamento();
-  }else{
-    auxLanc = lancamentoEdit;
-  }
+import { saveOutline, trashOutline } from "ionicons/icons";
 
-  const [lancamento, setLancamento] = useState<Lancamento>(auxLanc);
+interface Props {
+  doClose: Function;
+  doc: Lancamento;
+}
+
+export default function FormRecebidos(props: Props) {
+  const [lancamento, setLancamento] = useState<Lancamento>(props.doc);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const setLancamentoIdentificado = (event: CustomEvent, id: string) => {
-    setLancamento((prevLancamento) => ({
-      ...prevLancamento,
-      [id]: event.detail.value!,
-    }));    
+    if (id == "isRepetir") {
+      setLancamento((prevLancamento) => ({
+        ...prevLancamento,
+        [id]: event.detail.checked!,
+      }));
+    } else
+      setLancamento((prevLancamento) => ({
+        ...prevLancamento,
+        [id]: event.detail.value!,
+      }));
   };
 
-  const [dataRecebimento, setDataRecebimento] = useState<string>();
+  console.log("editar");
+  console.log(props.doc.key);
 
-  // const [valor, setValor] = useState<string>();
-
-  // const [titulo, setTitulo] = useState<string>();
-
-  // const [grupo, setGrupo] = useState<string>();
-
-  // const [tipo, setTipo] = useState<string>("recebido");
-
-  // const [vezesRepetir, setVezesRepetir] = useState<number>();
-
-  // const [isRepetir, setIsRepetir] = useState<boolean>();
-
-  //FUNÇÕES DO BANCO DE DADOS
   const [showAlert, setShowAlert] = useState(false);
 
-  const salvarRecebido = () => {
+  const inserirRecebido = () => {
     console.log("oi");
     try {
       let fb: FirebaseLancamento = new FirebaseLancamento();
       fb.salvar(lancamento);
-      window.history.back();
+      props.doClose();
     } catch (e) {
-      setShowAlert(true);
+      setShowConfirmDialog(true);
       console.log("please use a device: ", e);
     }
   };
 
-  
-  // FIM DAS FUNÇÕES DO BANCO DE DADOS
+  const removerRecebido = () => {
+    console.log("removendo");
+    try {
+      let fb: FirebaseLancamento = new FirebaseLancamento();
+      fb.remover(lancamento);
+      props.doClose();
+    } catch (e) {
+      setShowConfirmDialog(true);
+      console.log("please use a device: ", e);
+    }
+  };
+
+  const fecharRecebido = () => {
+    props.doClose();
+  };
 
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
           <IonButtons slot="start">
-            <IonBackButton />
+            <IonButton onClick={() => fecharRecebido()}>
+              <IonIcon color="danger" icon={arrowBack} />
+            </IonButton>
           </IonButtons>
-          <IonTitle>Novo Recebido</IonTitle>
+          <IonTitle>
+            {lancamento.key ? (
+              <IonLabel>Editar Recebido</IonLabel>
+            ) : (
+              <IonLabel>Novo Recebido</IonLabel>
+            )}
+          </IonTitle>
 
           <IonButtons slot="end">
-            <IonButton>
-              <IonIcon color="danger" icon={trashOutline} />
-            </IonButton>
-            <IonButton onClick={() => salvarRecebido()}>
+            {lancamento.key && (
+              <IonButton onClick={() => setShowConfirmDialog(true)}>
+                <IonIcon color="danger" icon={trashOutline} />
+              </IonButton>
+            )}
+            <IonButton onClick={() => inserirRecebido()}>
               <IonIcon color="success" icon={saveOutline} />
             </IonButton>
           </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
+        <IonAlert
+          isOpen={showConfirmDialog}
+          onDidDismiss={() => setShowConfirmDialog(false)}
+          header={"Remoção"}
+          message={"Confirma a remoção do Recebimento?"}
+          buttons={[
+            {
+              text: "Cancelar",
+              role: "cancel",
+              cssClass: "secondary",
+              handler: (blah) => {
+                console.log("Confirm Cancel: cancelou");
+              },
+            },
+            {
+              text: "Confirmar",
+              handler: () => {
+                removerRecebido();
+              },
+            },
+          ]}
+        />
+
         <IonItem>
           <IonLabel position="floating">Título</IonLabel>
           <IonInput
@@ -144,7 +182,10 @@ const FormRecebidos: React.FC<{ lancamentoEdit: Lancamento }> = ({lancamentoEdit
           <IonLabel>Repetir?</IonLabel>
           <IonToggle
             checked={lancamento.isRepetir}
-            onIonChange={(e) => setLancamentoIdentificado(e, "isRepetir")}
+            onIonChange={(e) => {
+              console.log("repetir:", e.detail.checked);
+              setLancamentoIdentificado(e, "isRepetir");
+            }}
             color="primary"
           />
         </IonItem>
@@ -173,9 +214,9 @@ const FormRecebidos: React.FC<{ lancamentoEdit: Lancamento }> = ({lancamentoEdit
           <IonLabel>Data do Recebimento</IonLabel>
           <IonDatetime
             displayFormat="DD/MM/YYYY"
-            value={dataRecebimento}
+            value={lancamento.data}
             placeholder="Data"
-            onIonChange={(e) => setDataRecebimento(e.detail.value!)}
+            onIonChange={(e) => setLancamentoIdentificado(e, "data")}
           ></IonDatetime>
         </IonItem>
 
@@ -191,6 +232,4 @@ const FormRecebidos: React.FC<{ lancamentoEdit: Lancamento }> = ({lancamentoEdit
       </IonContent>
     </IonPage>
   );
-};
-
-export default FormRecebidos;
+}

@@ -1,6 +1,7 @@
 import firebase from "firebase";
 import { Lancamento } from "../pages/models/Lancamento";
 
+
 export class FirebaseLancamento {
   salvar(lancamento: Lancamento) {
     let collectionRef = firebase
@@ -16,16 +17,19 @@ export class FirebaseLancamento {
         .set(lancamento, { merge: true })
         .catch((error) => console.log(error))
         .then((sucesso) => console.log(sucesso));
-      // setitem("");
-      // clear();
     } else {
       //senão, é um item pra adicionar
-      collectionRef.add(JSON.parse(JSON.stringify(lancamento)));
-      //   setitem("");
-      //   clear();
+      //collectionRef.add(JSON.parse(JSON.stringify(lancamento)));
+      console.log('titulo: ', lancamento.titulo);
+      
+      collectionRef.add(lancamento.toArray(lancamento));
     }
   }
 
+  /**
+   * 
+   * @param lancamento Remove um lancamento utilizando o seu código de documento em Key
+   */
   remover(lancamento: Lancamento) {
     firebase
       .firestore()
@@ -34,36 +38,18 @@ export class FirebaseLancamento {
       .delete();
   }
 
-  listarTodos(lista:Lancamento[]) {
-    console.log("listar");
-
+  /**
+   * Consulta na base de dados por um tipo específico de Lancamento.
+   * Ver Lancamento.TIPO_RECEBIDO e Lancamento.TIPO_DESPESA
+   */
+  listarTodosByTipo(tipo:string):firebase.firestore.Query {
     return firebase
       .firestore()
       .collection(Lancamento.COLLECTION_NAME)
-      .orderBy("data", "desc");
-      
+
+      //workround pra fazer funcionar a consulta
+      .where('tipo', '>=', tipo).where('tipo', '<=', tipo+ '\uf8ff')
+      .orderBy("tipo", "desc");      
   }
 
-  // listarTodos(lista:Lancamento[]) {
-  //   console.log("listar");
-
-  //   firebase
-  //     .firestore()
-  //     .collection(Lancamento.COLLECTION_NAME)
-  //     .orderBy("data", "desc")
-  //     .get()
-  //     .then(function (querySnapshot) {
-  //       console.log("respondeu");
-  //       lista = querySnapshot.docs.map(doc => doc.data() as Lancamento);
-  //       console.log(lista);
-  //       // querySnapshot.forEach(function (doc) {
-  //       //   lista.push(doc);
-  //       //   // doc.data() is never undefined for query doc snapshots
-  //       //   console.log(doc.id, " => ", doc.data());
-  //       // });
-  //     })
-  //     .catch(function (error) {
-  //       console.log("Error getting documents: ", error);
-  //     });
-  // }
 }
