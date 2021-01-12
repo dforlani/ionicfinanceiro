@@ -67,7 +67,7 @@ export class FirebaseLancamento {
       .where("data", ">=", dataInicial)
       .where("data", "<=", dataFinal)
 
-      .orderBy("data", "desc");
+      .orderBy("data", "asc");
   }
 
   /**
@@ -84,6 +84,6 @@ export class FirebaseLancamento {
       .where("data", ">=", dataInicial)
       .where("data", "<=", dataFinal)
 
-      .orderBy("data", "desc");
+      .orderBy("data", "asc");
   }
 }

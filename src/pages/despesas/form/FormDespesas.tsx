@@ -112,7 +112,7 @@ export default function FormDespesas(props: Props) {
             {lancamento.key ? (
               <IonLabel>Editar Despesa</IonLabel>
             ) : (
-              <IonLabel>Novo Despesa</IonLabel>
+              <IonLabel>Nova Despesa</IonLabel>
             )}
           </IonTitle>
 

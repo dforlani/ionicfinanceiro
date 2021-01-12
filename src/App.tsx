@@ -86,11 +86,8 @@ const App: React.FC = () => (
       <IonTabs>
         <IonRouterOutlet>
           <Route path="/tab1" component={Saldo} exact={true} />
-          <Route path="/tab2" component={Recebidos} exact={true} />
-          <Route path="/formrecebidos" component={FormRecebidos} exact={true} />
-          <Route path="/formrdespesas" component={FormDespesas} exact={true} />
-          <Route path="/tab3" component={Depesa} />
-          <Route path="/" render={() => <Redirect to="/tab1" />} exact={true} />
+          <Route path="/tab2" component={Recebidos} exact={true} />          
+          <Route path="/tab3" component={Depesa} />          
         </IonRouterOutlet>
         <IonTabBar slot="bottom">
           <IonTabButton tab="tab1" href="/tab1">

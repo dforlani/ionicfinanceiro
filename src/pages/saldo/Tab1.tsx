@@ -43,18 +43,87 @@ import { Link } from "react-router-dom";
 import { useHistory } from "react-router-dom";
 import ItemList from "../ItemList";
 import AddItem from "../AddItem";
+import { Calendario } from "../models/Calendario";
+import { FirebaseLancamento } from "../../services/FirebaseLancamento";
+import { Lancamento } from "../models/Lancamento";
 
 const Saldo: React.FC = () => {
   let history = useHistory();
   const chamarRecebidos = () => {
-    history.push("/tab2");   
+    history.push("/tab2");
   };
 
   const chamarDespesas = () => {
-    history.push("/tab3");   
+    history.push("/tab3");
   };
 
-  const [current, setCurrent]= useState(null);
+  let fb: FirebaseLancamento = new FirebaseLancamento();
+  const [calendario, setCalendario] = useState<Calendario>(new Calendario());
+  const [saldoMes, setSaldoMes] = useState(Number());
+  const [recebidosMes, setRecebidosMes] = useState(Number());
+  const [aReceberMes, setAReceberMes] = useState(Number());
+
+  const [pagosMes, setPagosMes] = useState(Number());
+  const [aPagarMes, setAPagarMes] = useState(Number());
+
+  const calculaSaldos = () => {
+    //RECEBIDOS
+    let somaRecebido = 0;
+    let somaAReceber = 0;
+    let somaPago = 0;
+    let somaAPagar = 0;
+
+    fb.listarRecebidosByData(
+      calendario.getDatePrimeiroDiaMes(),
+      calendario.getDateUltimoDiaMes()
+    )
+      .get()
+      .then(function (querySnapshot) {
+        querySnapshot.forEach(function (doc) {
+          // doc.data() is never undefined for query doc snapshots
+
+          if (!isNaN(doc.data().valor)) {
+            if(doc.data().tipo == Lancamento.TIPO_RECEBIDO)
+              somaRecebido += doc.data().valor;
+              else
+              somaAReceber += doc.data().valor;
+          }
+        });
+        setRecebidosMes(somaRecebido);
+        setAReceberMes(somaAReceber);
+        //setSaldoMes(somaAReceber + somaRecebido - somaPago - somaAPagar);
+      })
+      .catch(function (error) {
+        console.log("Error getting documents: ", error);
+      });
+
+      //PAGOS
+      fb.listarDespesasByData(
+        calendario.getDatePrimeiroDiaMes(),
+        calendario.getDateUltimoDiaMes()
+      )
+        .get()
+        .then(function (querySnapshot) {
+          querySnapshot.forEach(function (doc) {
+            // doc.data() is never undefined for query doc snapshots
+  
+            if (!isNaN(doc.data().valor)) {
+              if(doc.data().tipo == Lancamento.TIPO_PAGA)
+                somaPago += doc.data().valor;
+                else
+                somaAPagar += doc.data().valor;
+            }
+          });
+          setPagosMes(somaPago);
+          setAPagarMes(somaAPagar);
+          setSaldoMes(somaAReceber + somaRecebido - somaPago - somaAPagar);
+        })
+        .catch(function (error) {
+          console.log("Error getting documents: ", error);
+        });
+  };
+
+  calculaSaldos();
 
   return (
     <IonPage>
@@ -75,7 +144,7 @@ const Saldo: React.FC = () => {
                 <IonCol class="ion-text-center">Saldo do mês</IonCol>
               </IonRow>
               <IonRow>
-                <IonCol class="ion-text-center"> R$ 200,00</IonCol>
+                <IonCol class="ion-text-center"> R$ {saldoMes}</IonCol>
               </IonRow>
             </IonGrid>
           </h2>
@@ -83,63 +152,48 @@ const Saldo: React.FC = () => {
       </IonHeader>
 
       <IonContent fullscreen>
-        <IonCard color="success" onClick={(e) => {
+        {/* CARD RECEBIDOS */}
+        <IonCard
+          color="success"
+          onClick={(e) => {
             e.preventDefault();
             chamarRecebidos();
-          }}>
+          }}
+        >
           <IonCardContent>
             <IonGrid>
               <IonRow>
                 <IonCol>Recebidos</IonCol>
-                <IonCol class="ion-text-right">R$ 100,00</IonCol>
+                <IonCol class="ion-text-right">R$ {recebidosMes}</IonCol>
               </IonRow>
               <IonRow>
                 <IonCol>À Receber</IonCol>
-                <IonCol class="ion-text-right">R$ 0,00</IonCol>
+                <IonCol class="ion-text-right">R$ {aReceberMes}</IonCol>
               </IonRow>
             </IonGrid>
           </IonCardContent>
         </IonCard>
 
-        <IonCard color="danger"  onClick={(e) => {
+        {/* CARD PAGOS */}
+        <IonCard
+          color="danger"
+          onClick={(e) => {
             e.preventDefault();
             chamarDespesas();
-          }}>
+          }}
+        >
           <IonCardContent>
             <IonGrid>
               <IonRow>
-                <IonCol>Despesas</IonCol>
-                <IonCol class="ion-text-right">R$ 0,00</IonCol>
+                <IonCol>Pagos</IonCol>
+                <IonCol class="ion-text-right">R$ {pagosMes}</IonCol>
               </IonRow>
               <IonRow>
-                <IonCol>À Pagar </IonCol>
-                <IonCol class="ion-text-right"> R$ 0,00</IonCol>
+                <IonCol>À Pagar</IonCol>
+                <IonCol class="ion-text-right">R$ {aPagarMes}</IonCol>
               </IonRow>
             </IonGrid>
           </IonCardContent>
-        </IonCard>
-
-        <IonButton
-         
-        >
-
-         Tab2
-          
-        </IonButton>
-
-        <IonButton routerLink='/tab3'>tab3</IonButton>
-
-        {}
-        <IonCard>
-          <IonCardHeader>
-          <h3>Lista</h3>
-          </IonCardHeader>
-          <IonCardContent>
-            <AddItem initialValue={current} clear={()=>setCurrent(null)}/>
-          </IonCardContent>
-          {}
-          <ItemList doEdit={setCurrent}/>
-
         </IonCard>
       </IonContent>
     </IonPage>
