@@ -83,10 +83,9 @@ const Saldo: React.FC = () => {
           // doc.data() is never undefined for query doc snapshots
 
           if (!isNaN(doc.data().valor)) {
-            if(doc.data().tipo == Lancamento.TIPO_RECEBIDO)
+            if (doc.data().tipo == Lancamento.TIPO_RECEBIDO)
               somaRecebido += doc.data().valor;
-              else
-              somaAReceber += doc.data().valor;
+            else somaAReceber += doc.data().valor;
           }
         });
         setRecebidosMes(somaRecebido);
@@ -97,30 +96,29 @@ const Saldo: React.FC = () => {
         console.log("Error getting documents: ", error);
       });
 
-      //PAGOS
-      fb.listarDespesasByData(
-        calendario.getDatePrimeiroDiaMes(),
-        calendario.getDateUltimoDiaMes()
-      )
-        .get()
-        .then(function (querySnapshot) {
-          querySnapshot.forEach(function (doc) {
-            // doc.data() is never undefined for query doc snapshots
-  
-            if (!isNaN(doc.data().valor)) {
-              if(doc.data().tipo == Lancamento.TIPO_PAGA)
-                somaPago += doc.data().valor;
-                else
-                somaAPagar += doc.data().valor;
-            }
-          });
-          setPagosMes(somaPago);
-          setAPagarMes(somaAPagar);
-          setSaldoMes(somaAReceber + somaRecebido - somaPago - somaAPagar);
-        })
-        .catch(function (error) {
-          console.log("Error getting documents: ", error);
+    //PAGOS
+    fb.listarDespesasByData(
+      calendario.getDatePrimeiroDiaMes(),
+      calendario.getDateUltimoDiaMes()
+    )
+      .get()
+      .then(function (querySnapshot) {
+        querySnapshot.forEach(function (doc) {
+          // doc.data() is never undefined for query doc snapshots
+
+          if (!isNaN(doc.data().valor)) {
+            if (doc.data().tipo == Lancamento.TIPO_PAGA)
+              somaPago += doc.data().valor;
+            else somaAPagar += doc.data().valor;
+          }
         });
+        setPagosMes(somaPago);
+        setAPagarMes(somaAPagar);
+        setSaldoMes(somaAReceber + somaRecebido - somaPago - somaAPagar);
+      })
+      .catch(function (error) {
+        console.log("Error getting documents: ", error);
+      });
   };
 
   calculaSaldos();
@@ -134,9 +132,23 @@ const Saldo: React.FC = () => {
 
         <IonToolbar color="primary">
           <IonItem lines="none" color="primary">
-            <IonIcon icon={chevronBack} slot="start" />
-            <IonLabel class="ion-text-center">Setembro</IonLabel>
-            <IonIcon icon={chevronForward} slot="end" />
+            <IonIcon
+              icon={chevronBack}
+              slot="start"
+              onClick={() => {
+                setCalendario({ ...calendario.getAnteriorCalendario() });
+              }}
+            />
+            <IonLabel class="ion-text-center">
+              {calendario.mesSelecionado + "/" + calendario.anoSelecionado}
+            </IonLabel>
+            <IonIcon
+              icon={chevronForward}
+              slot="end"
+              onClick={() => {
+                setCalendario({ ...calendario.getProximoCalendario() });
+              }}
+            />
           </IonItem>
           <h2>
             <IonGrid>

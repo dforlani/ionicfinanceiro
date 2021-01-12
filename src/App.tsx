@@ -2,16 +2,23 @@ import React from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import {
   IonApp,
+  IonContent,
+  IonHeader,
   IonIcon,
+  IonItem,
   IonLabel,
+  IonList,
+  IonMenu,
   IonRouterOutlet,
   IonTabBar,
   IonTabButton,
-  IonTabs
+  IonTabs,
+  IonTitle,
+  IonToolbar
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { ellipse, square, triangle } from 'ionicons/icons';
-import Saldo from './pages/saldo/Tab1';
+import Saldo from './pages/saldo/Saldo';
 import Recebidos from './pages/recebidos/Recebidos';
 import Depesa from './pages/despesas/Despesa';
 
@@ -75,31 +82,27 @@ firebase.initializeApp(firebaseConfig);
 
 const App: React.FC = () => (
 
-
-
-
-
-
-
-  <IonApp>
+  <IonApp>    
     <IonReactRouter>
       <IonTabs>
         <IonRouterOutlet>
-          <Route path="/tab1" component={Saldo} exact={true} />
+          {/* <Route path="/tab1" component={Saldo} exact={true} /> */}
+          <Route path="/tab1" render={() => <Saldo/>} exact={true} />
           <Route path="/tab2" component={Recebidos} exact={true} />          
-          <Route path="/tab3" component={Depesa} />          
+          <Route path="/tab3" component={Depesa} />
+          <Route path="/" render={() => <Redirect to="/tab1" />} exact={true} />
         </IonRouterOutlet>
         <IonTabBar slot="bottom">
-          <IonTabButton tab="tab1" href="/tab1">
-            <IonIcon icon={triangle} />
+          <IonTabButton tab="tab1" href="/tab1" onClick={()=>console.log('tab1')} >
+            <IonIcon icon={triangle}  onClick={()=>console.log('tab1')}/>
             <IonLabel>Saldo</IonLabel>
           </IonTabButton>
-          <IonTabButton tab="tab2" href="/tab2">
-            <IonIcon icon={ellipse} />
+          <IonTabButton tab="tab2" href="/tab2" onClick={()=>console.log('tab2')}>
+            <IonIcon icon={ellipse} onClick={()=>console.log('tab2')}/>
             <IonLabel>Recebidos</IonLabel>
           </IonTabButton>
-          <IonTabButton tab="tab3" href="/tab3">
-            <IonIcon icon={square} />
+          <IonTabButton tab="tab3" href="/tab3" onClick={()=>console.log('tab3')}>
+            <IonIcon icon={square} onClick={()=>console.log('tab3')}/>
             <IonLabel>Despesas</IonLabel>
           </IonTabButton>
         </IonTabBar>
