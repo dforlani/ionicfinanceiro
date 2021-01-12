@@ -1,17 +1,15 @@
 import firebase from "firebase";
 import { Lancamento } from "../pages/models/Lancamento";
 
-
 export class FirebaseLancamento {
   salvar(lancamento: Lancamento) {
     let collectionRef = firebase
       .firestore()
       .collection(Lancamento.COLLECTION_NAME);
-    console.log("entrou");
-    console.log(JSON.stringify(lancamento));
+
     if (lancamento.key) {
       //se tem key, é um item pra editar
-      console.log("entrou2");
+
       collectionRef
         .doc(lancamento.key)
         .set(lancamento, { merge: true })
@@ -19,15 +17,12 @@ export class FirebaseLancamento {
         .then((sucesso) => console.log(sucesso));
     } else {
       //senão, é um item pra adicionar
-      //collectionRef.add(JSON.parse(JSON.stringify(lancamento)));
-      console.log('titulo: ', lancamento.titulo);
-      
       collectionRef.add(lancamento.toArray(lancamento));
     }
   }
 
   /**
-   * 
+   *
    * @param lancamento Remove um lancamento utilizando o seu código de documento em Key
    */
   remover(lancamento: Lancamento) {
@@ -42,14 +37,53 @@ export class FirebaseLancamento {
    * Consulta na base de dados por um tipo específico de Lancamento.
    * Ver Lancamento.TIPO_RECEBIDO e Lancamento.TIPO_DESPESA
    */
-  listarTodosByTipo(tipo:string):firebase.firestore.Query {
+  listarTodosByTipo(tipo: string): firebase.firestore.Query {
+    return (
+      firebase
+        .firestore()
+        .collection(Lancamento.COLLECTION_NAME)
+
+        //workround pra fazer funcionar a consulta
+        .where("tipo", ">=", tipo)
+        .where("tipo", "<=", tipo + "\uf8ff")
+        .orderBy("tipo", "desc")
+    );
+  }
+
+  /**
+   * Consulta na base de dados por lançamentos recebidos em um período de tempo
+   */
+  listarRecebidosByData(
+    dataInicial: Date,
+    dataFinal: Date
+  ): firebase.firestore.Query {
     return firebase
       .firestore()
       .collection(Lancamento.COLLECTION_NAME)
+      .where("tipo", "in", [
+        Lancamento.TIPO_A_RECEBER,
+        Lancamento.TIPO_RECEBIDO,
+      ])
+      .where("data", ">=", dataInicial)
+      .where("data", "<=", dataFinal)
 
-      //workround pra fazer funcionar a consulta
-      .where('tipo', '>=', tipo).where('tipo', '<=', tipo+ '\uf8ff')
-      .orderBy("tipo", "desc");      
+      .orderBy("data", "desc");
   }
 
+  /**
+   * Consulta na base de dados por lançamentos pagos em um período de tempo
+   */
+  listarDespesasByData(
+    dataInicial: Date,
+    dataFinal: Date
+  ): firebase.firestore.Query {
+    return firebase
+      .firestore()
+      .collection(Lancamento.COLLECTION_NAME)
+      .where("tipo", "in", [Lancamento.TIPO_PAGA, Lancamento.TIPO_A_PAGAR])
+      .where("data", ">=", dataInicial)
+      .where("data", "<=", dataFinal)
+
+      .orderBy("data", "desc");
+  }
 }

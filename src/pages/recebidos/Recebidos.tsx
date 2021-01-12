@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   IonBackButton,
-  IonButton,
   IonButtons,
   IonCol,
   IonContent,
@@ -19,53 +18,70 @@ import {
   IonTitle,
   IonToolbar,
 } from "@ionic/react";
-import ExploreContainer from "../../components/ExploreContainer";
 import "./Recebidos.css";
-import {
-  addOutline,
-  arrowForwardCircle,
-  chevronBack,
-  chevronForward,
-} from "ionicons/icons";
-import Item from "../Item";
+import { Timestamp} from '@google-cloud/firestore';
+import { addOutline, checkmarkDoneOutline, checkmarkOutline, chevronBack, chevronForward } from "ionicons/icons";
 import { useCollection } from "react-firebase-hooks/firestore";
-import firebase from "firebase";
 import { FirebaseLancamento } from "../../services/FirebaseLancamento";
 import { Lancamento } from "../models/Lancamento";
-import { Route } from "react-router";
 import FormRecebidos from "./form/FormRecebidos";
-import MyModal from "./form/MyModal";
-
-
+import { Calendario } from "../models/Calendario";
+import { isConstructorDeclaration } from "typescript";
 
 const Recebidos: React.FC = () => {
   let fb: FirebaseLancamento = new FirebaseLancamento();
-
-  const [value, loading] = useCollection(fb.listarTodosByTipo(Lancamento.TIPO_RECEBIDO), {
-    snapshotListenOptions: { includeMetadataChanges: true }, 
-  });
+  
+  const [calendario, setCalendario] = useState<Calendario>(new Calendario());
+  const [value, loading] = useCollection(
+    fb.listarRecebidosByData(calendario.getDatePrimeiroDiaMes(), calendario.getDateUltimoDiaMes()),
+    {
+      snapshotListenOptions: { includeMetadataChanges: true },
+    }
+  );
 
   const [showModal, setShowModal] = useState(false);
+  const [saldoMes, setSaldoMes] = useState(Number());
   const [lancamento, setLancamento] = useState(new Lancamento());
-
   //esta tela vai salvar os lançamentos como recebidos
-  lancamento.tipo = Lancamento.TIPO_RECEBIDO;
+  if(lancamento.key == '' || lancamento.key == undefined)  
+    lancamento.tipo = Lancamento.TIPO_RECEBIDO;
 
   const abrirFormRecebido = (lanc: Lancamento) => {
-    console.log("alterar");
     setLancamento(lanc);
-    console.log("alterarLancamento ", lanc.valor);
     setShowModal(true);
   };
 
   const closeModal = () => {
-    console.log("fecha");
     setShowModal(false);
   };
 
-  console.log("value");
-  console.log(value);
-  console.log("value2");
+  const calculaSomaMes = () => {
+    let soma = 0;
+    fb.listarRecebidosByData(calendario.getDatePrimeiroDiaMes(), calendario.getDateUltimoDiaMes())
+      .get()
+      .then(function (querySnapshot) {
+        
+        querySnapshot.forEach(function (doc) {
+          // doc.data() is never undefined for query doc snapshots
+          
+          if (!isNaN(doc.data().valor)) {
+            soma += doc.data().valor;
+          }
+        });
+        setSaldoMes(soma);
+      })
+      .catch(function (error) {
+        console.log("Error getting documents: ", error);
+      });
+  };
+
+  calculaSomaMes();
+
+  const estilo_recebido = {
+    color: 'green',
+    marginRight:'10px',
+ } as React.CSSProperties;
+
   return (
     <IonPage>
       <IonHeader>
@@ -77,17 +93,23 @@ const Recebidos: React.FC = () => {
         </IonToolbar>
         <IonToolbar color="success">
           <IonItem lines="none" color="success">
-            <IonIcon icon={chevronBack} slot="start" />
-            <IonLabel class="ion-text-center">Setembro</IonLabel>
-            <IonIcon icon={chevronForward} slot="end" />
+            <IonIcon icon={chevronBack} slot="start" onClick={() => {setCalendario({...calendario.getAnteriorCalendario()})}} />
+            <IonLabel class="ion-text-center">
+              {calendario.mesSelecionado + "/" + calendario.anoSelecionado}
+            </IonLabel>
+            <IonIcon
+              icon={chevronForward}
+              slot="end"
+              onClick={() => {setCalendario({...calendario.getProximoCalendario()})}}
+            />
           </IonItem>
           <h2>
             <IonGrid>
               <IonRow>
-                <IonCol class="ion-text-center">Saldo do mês</IonCol>
+                <IonCol class="ion-text-center">Recebimentos do mês</IonCol>
               </IonRow>
               <IonRow>
-                <IonCol class="ion-text-center"> R$ 100,00</IonCol>
+                <IonCol class="ion-text-center"> R$ {saldoMes}</IonCol>
               </IonRow>
             </IonGrid>
           </h2>
@@ -105,37 +127,44 @@ const Recebidos: React.FC = () => {
             // ={"oi"}
             doc={lancamento}
             doClose={() => {
-              console.log("recebidos doClose");
               closeModal();
             }}
-      
           />
         </IonModal>
 
         <IonList id="listaLancamento">
-          {!loading && value &&
-            value.docs.map((doc:any) => {
-              let auxLancamento:Lancamento;
+          {!loading &&
+            value &&
+            value.docs.map((doc: any) => {
+              let auxLancamento: Lancamento;
               auxLancamento = doc.data();
+              //workaround pra converter do formato Timestamp que vem do Firestore
+              if( doc.data().data != undefined){                
+                auxLancamento.data =  new Date(doc.data().data.seconds*1000);         
+              }
 
               //atribui a key pra termos o código de documento, o que vai facilitar na remoção e edição
-              auxLancamento.key = doc.id; 
-              auxLancamento.tipo = Lancamento.TIPO_RECEBIDO;
-              
+              auxLancamento.key = doc.id;
+
               return (
-                <IonItem onClick={() => abrirFormRecebido(auxLancamento)}>                  
+                <IonItem onClick={() => abrirFormRecebido(auxLancamento)}>
                   <IonLabel>
-                    <h5>{doc.data().titulo}</h5>
-                    <p>{doc.data().grupo}</p>                   
+                    <h5><span style={estilo_recebido}>{auxLancamento.data.getDate()}</span><span>{auxLancamento.titulo}</span></h5>
+                    <p>{auxLancamento.grupo}</p>                    
                   </IonLabel>
+
                   <h5>{doc.data().valor} </h5>
+                  <IonIcon icon={auxLancamento.tipo == Lancamento.TIPO_RECEBIDO? checkmarkDoneOutline: checkmarkOutline} />
                 </IonItem>
               );
             })}
         </IonList>
 
         <IonFab vertical="bottom" horizontal="end" slot="fixed">
-          <IonFabButton onClick={() => abrirFormRecebido(new Lancamento())} color="success">
+          <IonFabButton
+            onClick={() => abrirFormRecebido(new Lancamento())}
+            color="success"
+          >
             <IonIcon icon={addOutline} />
           </IonFabButton>
         </IonFab>

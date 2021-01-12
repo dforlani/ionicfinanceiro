@@ -40,7 +40,12 @@ export default function FormRecebidos(props: Props) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const setLancamentoIdentificado = (event: CustomEvent, id: string) => {
-    if (id == "isRepetir") {
+    if (id == "data") {
+      setLancamento((prevLancamento) => ({
+        ...prevLancamento,
+        [id]: new Date(event.detail.value),
+      }));
+    } else if (id == "isRepetir") {
       setLancamento((prevLancamento) => ({
         ...prevLancamento,
         [id]: event.detail.checked!,
@@ -52,32 +57,41 @@ export default function FormRecebidos(props: Props) {
       }));
   };
 
-  console.log("editar");
-  console.log(props.doc.key);
-
   const [showAlert, setShowAlert] = useState(false);
 
   const inserirRecebido = () => {
-    console.log("oi");
     try {
-      let fb: FirebaseLancamento = new FirebaseLancamento();
-      fb.salvar(lancamento);
+      let repetir = 0;
+      //faz um clone, pq o firebase demora pra salvar e a variável pode acaber sendo alterada
+      let lancamento_clone = {...lancamento};
+      if ((lancamento_clone.key == '' || lancamento_clone.key == undefined) && lancamento_clone.vezesRepetir != undefined) {
+        repetir = lancamento_clone.vezesRepetir - 1;
+      }
+      console.log(repetir);
+      for (let i = 0; i <= repetir; i++) {
+        console.log('salvar');
+        let fb: FirebaseLancamento = new FirebaseLancamento();
+        fb.salvar(lancamento_clone);
+        //altera o lancamento pro próximo mês, pro caso de precisar repetir
+        lancamento_clone = {...lancamento_clone};
+        lancamento_clone.data = new Date(lancamento_clone.data.getFullYear(), lancamento_clone.data.getMonth() + 1, lancamento_clone.data.getDate());
+      
+      }
+      
       props.doClose();
     } catch (e) {
-      setShowConfirmDialog(true);
-      console.log("please use a device: ", e);
+      console.log(e);
+      setShowAlert(true);
     }
   };
 
   const removerRecebido = () => {
-    console.log("removendo");
     try {
       let fb: FirebaseLancamento = new FirebaseLancamento();
       fb.remover(lancamento);
       props.doClose();
     } catch (e) {
       setShowConfirmDialog(true);
-      console.log("please use a device: ", e);
     }
   };
 
@@ -178,18 +192,19 @@ export default function FormRecebidos(props: Props) {
           </IonItem>
         </IonRadioGroup>
 
+        {lancamento.key == '' || lancamento.key == undefined ? (
         <IonItem>
           <IonLabel>Repetir?</IonLabel>
           <IonToggle
             checked={lancamento.isRepetir}
             onIonChange={(e) => {
-              console.log("repetir:", e.detail.checked);
               setLancamentoIdentificado(e, "isRepetir");
             }}
             color="primary"
           />
-        </IonItem>
-        {lancamento.isRepetir ? (
+           </IonItem>) : (<></>)}
+       
+        {(lancamento.key == ''  || lancamento.key == undefined) && lancamento.isRepetir ? (
           <IonItem>
             <IonLabel position="floating">Quantas Vezes?</IonLabel>
             <IonInput
@@ -199,7 +214,7 @@ export default function FormRecebidos(props: Props) {
             ></IonInput>
           </IonItem>
         ) : (
-          console.log("toi")
+          <></>
         )}
 
         <IonItem>
@@ -214,7 +229,7 @@ export default function FormRecebidos(props: Props) {
           <IonLabel>Data do Recebimento</IonLabel>
           <IonDatetime
             displayFormat="DD/MM/YYYY"
-            value={lancamento.data}
+            value={lancamento.data.toDateString()}
             placeholder="Data"
             onIonChange={(e) => setLancamentoIdentificado(e, "data")}
           ></IonDatetime>
@@ -223,9 +238,9 @@ export default function FormRecebidos(props: Props) {
         <IonAlert
           isOpen={showAlert}
           onDidDismiss={() => setShowAlert(false)}
-          header={"Mamma mia!"}
+          header={"Erro!"}
           message={
-            "This will only work on a device. Please refer to the README."
+            "Ocorreu um erro."
           }
           buttons={["OK"]}
         />

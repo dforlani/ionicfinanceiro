@@ -1,6 +1,3 @@
-import { stringify } from "querystring";
-import firebase from "firebase";
-
 export class Lancamento {
   key: string;
   titulo: string;
@@ -9,12 +6,14 @@ export class Lancamento {
   isRepetir: boolean;
   vezesRepetir: number |undefined;
   valor: number | undefined;
-  data: string;
+  data: Date;  
   situacao: boolean;
 
   static readonly COLLECTION_NAME: string = "lancamentos";
   static readonly TIPO_RECEBIDO: string = "recebido";
-  static readonly TIPO_DESPESA: string = "despesa";
+  static readonly TIPO_A_RECEBER: string = "a_receber";
+  static readonly TIPO_PAGA: string = "pago";
+  static readonly TIPO_A_PAGAR: string = "a_pagar";
 
   constructor() {
     this.key = "";
@@ -24,12 +23,12 @@ export class Lancamento {
     this.isRepetir = false;
     this.vezesRepetir = undefined;
     this.valor = undefined;
-    this.data = (new Date()).toDateString();
+    this.data = new Date();
     this.situacao = false;
   }
 
    toArray = (lancamento:Lancamento) => {
-    console.log(typeof (lancamento.valor))
+    
     let retorno =  {
       key: lancamento.key,
       titulo: lancamento.titulo,
@@ -44,6 +43,10 @@ export class Lancamento {
     
     
     return retorno;
+  }
+
+  isNovoLancamento = ():boolean =>{
+    return this.key == '' || this.key == undefined;
   }
 
 
