@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   IonAlert,
@@ -29,14 +29,41 @@ import { FirebaseLancamento } from "../../../services/FirebaseLancamento";
 import { Lancamento } from "../../models/Lancamento";
 
 import { saveOutline, trashOutline } from "ionicons/icons";
+// import FormDespesas from "./FormDespesas copy";
+import Props from "../Props";
+import { RouteComponentProps } from "react-router";
 
-interface Props {
-  doClose: Function;
-  doc: Lancamento;
-}
+const FormDespesas: React.FC<RouteComponentProps> = ({ match }) => {
+  console.log("key: ", (match.params as Props).lancamento_key);
+  const [lancamento, setLancamento] = useState<Lancamento>(new Lancamento());
+  let lancamento_key = (match.params as Props).lancamento_key;
 
-export default function FormDespesas(props: Props) {
-  const [lancamento, setLancamento] = useState<Lancamento>(props.doc);
+  //Vai buscar o lancamento, caso ele venha de uma alteração
+  useEffect(() => {
+    if (lancamento_key != "novo") {
+      let fb: FirebaseLancamento = new FirebaseLancamento();
+      let docRef = fb.buscar(lancamento_key);
+      docRef
+        .get()
+        .then(function (doc) {
+          if (doc.exists) {
+            let aux = doc.data() as Lancamento;
+            aux.data = new Date(doc.data()?.data.seconds * 1000);
+            aux.key = doc.id;
+            setLancamento(aux);
+          } else {
+            // doc.data() will be undefined in this case
+            console.log("No such document!");
+          }
+        })
+        .catch(function (error) {
+          console.log("Error getting document:", error);
+        });
+    } else {
+      setLancamento({ ...new Lancamento(), tipo: Lancamento.TIPO_PAGA });
+    }
+  }, [lancamento_key]); //colocar a key no array, pra ele executar sempre que a key mudar
+
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const setLancamentoIdentificado = (event: CustomEvent, id: string) => {
@@ -61,24 +88,36 @@ export default function FormDespesas(props: Props) {
 
   const inserirDespesa = () => {
     try {
+      console.log("1");
+
       let repetir = 0;
       //faz um clone, pq o firebase demora pra salvar e a variável pode acaber sendo alterada
-      let lancamento_clone = {...lancamento};
-      if ((lancamento_clone.key == '' || lancamento_clone.key == undefined) && lancamento_clone.vezesRepetir != undefined) {
+      let lancamento_clone = { ...lancamento };
+      if (
+        (lancamento_clone.key == "" || lancamento_clone.key == undefined) &&
+        lancamento_clone.vezesRepetir != undefined &&
+        !isNaN(lancamento_clone.vezesRepetir)
+      ) {
+        console.log("2");
+
         repetir = lancamento_clone.vezesRepetir - 1;
       }
       console.log(repetir);
+
       for (let i = 0; i <= repetir; i++) {
-        console.log('salvar');
         let fb: FirebaseLancamento = new FirebaseLancamento();
         fb.salvar(lancamento_clone);
+        console.log("3");
         //altera o lancamento pro próximo mês, pro caso de precisar repetir
-        lancamento_clone = {...lancamento_clone};
-        lancamento_clone.data = new Date(lancamento_clone.data.getFullYear(), lancamento_clone.data.getMonth() + 1, lancamento_clone.data.getDate());
-      
+        lancamento_clone = { ...lancamento_clone };
+        lancamento_clone.data = new Date(
+          lancamento_clone.data.getFullYear(),
+          lancamento_clone.data.getMonth() + 1,
+          lancamento_clone.data.getDate()
+        );
       }
-      
-      props.doClose();
+
+      window.history.back();
     } catch (e) {
       console.log(e);
       setShowAlert(true);
@@ -89,14 +128,10 @@ export default function FormDespesas(props: Props) {
     try {
       let fb: FirebaseLancamento = new FirebaseLancamento();
       fb.remover(lancamento);
-      props.doClose();
+      window.history.back();
     } catch (e) {
       setShowConfirmDialog(true);
     }
-  };
-
-  const fecharDespesa = () => {
-    props.doClose();
   };
 
   return (
@@ -104,9 +139,7 @@ export default function FormDespesas(props: Props) {
       <IonHeader>
         <IonToolbar>
           <IonButtons slot="start">
-            <IonButton onClick={() => fecharDespesa()}>
-              <IonIcon color="danger" icon={arrowBack} />
-            </IonButton>
+            <IonBackButton />
           </IonButtons>
           <IonTitle>
             {lancamento.key ? (
@@ -192,19 +225,23 @@ export default function FormDespesas(props: Props) {
           </IonItem>
         </IonRadioGroup>
 
-        {lancamento.key == '' || lancamento.key == undefined ? (
-        <IonItem>
-          <IonLabel>Repetir?</IonLabel>
-          <IonToggle
-            checked={lancamento.isRepetir}
-            onIonChange={(e) => {
-              setLancamentoIdentificado(e, "isRepetir");
-            }}
-            color="primary"
-          />
-           </IonItem>) : (<></>)}
-       
-        {(lancamento.key == ''  || lancamento.key == undefined) && lancamento.isRepetir ? (
+        {lancamento.key == "" || lancamento.key == undefined ? (
+          <IonItem>
+            <IonLabel>Repetir?</IonLabel>
+            <IonToggle
+              checked={lancamento.isRepetir}
+              onIonChange={(e) => {
+                setLancamentoIdentificado(e, "isRepetir");
+              }}
+              color="primary"
+            />
+          </IonItem>
+        ) : (
+          <></>
+        )}
+
+        {(lancamento.key == "" || lancamento.key == undefined) &&
+        lancamento.isRepetir ? (
           <IonItem>
             <IonLabel position="floating">Quantas Vezes?</IonLabel>
             <IonInput
@@ -239,12 +276,11 @@ export default function FormDespesas(props: Props) {
           isOpen={showAlert}
           onDidDismiss={() => setShowAlert(false)}
           header={"Erro!"}
-          message={
-            "Ocorreu um erro."
-          }
+          message={"Ocorreu um erro."}
           buttons={["OK"]}
         />
       </IonContent>
     </IonPage>
   );
-}
+};
+export default FormDespesas;

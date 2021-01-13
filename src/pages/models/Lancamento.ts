@@ -40,7 +40,7 @@ export class Lancamento {
       data: lancamento.data,
       situacao: lancamento.situacao,
     };
-    
+    console.log('tipovalor', typeof(retorno.valor));
     
     return retorno;
   }

@@ -87,6 +87,21 @@ const App: React.FC = () => (
       <IonTabs>
         <IonRouterOutlet>
           {/* <Route path="/tab1" component={Saldo} exact={true} /> */}
+          {/* <Route
+              exact={true}
+              path="/formDepesas"
+              render={(props) => (
+                <FormDespesas
+                  {...{
+                    ...props,
+                    doc: lancamento,
+                    doClose: () => closeModal(),
+                  }}
+                />
+              )}
+            /> */}
+            <Route path="/formrecebimentos/:lancamento_key" component={FormRecebidos} exact={true} />
+            <Route path="/formdespesas/:lancamento_key" component={FormDespesas} exact={true} />
           <Route path="/tab1" render={() => <Saldo/>} exact={true} />
           <Route path="/tab2" component={Recebidos} exact={true} />          
           <Route path="/tab3" component={Depesa} />

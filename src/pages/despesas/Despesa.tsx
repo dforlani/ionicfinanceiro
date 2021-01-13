@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   IonBackButton,
+  IonButton,
   IonButtons,
   IonCol,
   IonContent,
@@ -14,26 +15,44 @@ import {
   IonList,
   IonModal,
   IonPage,
+  IonRouterOutlet,
   IonRow,
+  IonTabBar,
+  IonTabButton,
+  IonTabs,
   IonTitle,
   IonToolbar,
 } from "@ionic/react";
+import { BrMaskDirective, BrMaskerModule, BrMaskModel } from "br-mask";
 import "./Despesa.css";
-import { Timestamp} from '@google-cloud/firestore';
-import { addOutline, checkmarkDoneOutline, checkmarkOutline, chevronBack, chevronForward } from "ionicons/icons";
+import { Timestamp } from "@google-cloud/firestore";
+import {
+  addOutline,
+  checkmarkDoneOutline,
+  checkmarkOutline,
+  chevronBack,
+  chevronForward,
+  triangle,
+} from "ionicons/icons";
 import { useCollection } from "react-firebase-hooks/firestore";
 import { FirebaseLancamento } from "../../services/FirebaseLancamento";
 import { Lancamento } from "../models/Lancamento";
 import FormDespesas from "./form/FormDespesas";
 import { Calendario } from "../models/Calendario";
 import { isConstructorDeclaration } from "typescript";
+import { IonReactRouter } from "@ionic/react-router";
+import { Redirect, Route } from "react-router";
+import Props from "./Props";
 
 const Despesas: React.FC = () => {
   let fb: FirebaseLancamento = new FirebaseLancamento();
-  
+
   const [calendario, setCalendario] = useState<Calendario>(new Calendario());
   const [value, loading] = useCollection(
-    fb.listarDespesasByData(calendario.getDatePrimeiroDiaMes(), calendario.getDateUltimoDiaMes()),
+    fb.listarDespesasByData(
+      calendario.getDatePrimeiroDiaMes(),
+      calendario.getDateUltimoDiaMes()
+    ),
     {
       snapshotListenOptions: { includeMetadataChanges: true },
     }
@@ -43,7 +62,7 @@ const Despesas: React.FC = () => {
   const [saldoMes, setSaldoMes] = useState(Number());
   const [lancamento, setLancamento] = useState(new Lancamento());
   //esta tela vai salvar os lançamentos como despesas
-  if(lancamento.key == '' || lancamento.key == undefined)  
+  if (lancamento.key == "" || lancamento.key == undefined)
     lancamento.tipo = Lancamento.TIPO_PAGA;
 
   const abrirFormDespesa = (lanc: Lancamento) => {
@@ -57,13 +76,15 @@ const Despesas: React.FC = () => {
 
   const calculaSomaMes = () => {
     let soma = 0;
-    fb.listarDespesasByData(calendario.getDatePrimeiroDiaMes(), calendario.getDateUltimoDiaMes())
+    fb.listarDespesasByData(
+      calendario.getDatePrimeiroDiaMes(),
+      calendario.getDateUltimoDiaMes()
+    )
       .get()
       .then(function (querySnapshot) {
-        
         querySnapshot.forEach(function (doc) {
           // doc.data() is never undefined for query doc snapshots
-          
+
           if (!isNaN(doc.data().valor)) {
             soma += doc.data().valor;
           }
@@ -78,29 +99,41 @@ const Despesas: React.FC = () => {
   calculaSomaMes();
 
   const estilo_despesa = {
-    color: 'green',
-    marginRight:'10px',
- } as React.CSSProperties;
+    color: "green",
+    marginRight: "10px",
+  } as React.CSSProperties;
+
+  const createValorBR = () => {
+    const config: BrMaskModel = new BrMaskModel();
+    config.phone = true;
+    let brMask: BrMaskDirective  = new BrMaskDirective (null, null);
+    return brMask.writeCreateValue("99999999999", config);
+  };
 
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonButtons slot="start">
-            <IonBackButton />
-          </IonButtons>
           <IonTitle>Despesas</IonTitle>
         </IonToolbar>
         <IonToolbar color="danger">
           <IonItem lines="none" color="danger">
-            <IonIcon icon={chevronBack} slot="start" onClick={() => {setCalendario({...calendario.getAnteriorCalendario()})}} />
+            <IonIcon
+              icon={chevronBack}
+              slot="start"
+              onClick={() => {
+                setCalendario({ ...calendario.getAnteriorCalendario() });
+              }}
+            />
             <IonLabel class="ion-text-center">
               {calendario.mesSelecionado + "/" + calendario.anoSelecionado}
             </IonLabel>
             <IonIcon
               icon={chevronForward}
               slot="end"
-              onClick={() => {setCalendario({...calendario.getProximoCalendario()})}}
+              onClick={() => {
+                setCalendario({ ...calendario.getProximoCalendario() });
+              }}
             />
           </IonItem>
           <h2>
@@ -122,14 +155,14 @@ const Despesas: React.FC = () => {
           </IonToolbar>
         </IonHeader>
 
-        <IonModal isOpen={showModal} cssClass="my-custom-class">
+        {/* <IonModal isOpen={showModal} cssClass="my-custom-class">
           <FormDespesas            
             doc={lancamento}
             doClose={() => {
               closeModal();
             }}
           />
-        </IonModal>
+        </IonModal> */}
 
         <IonList id="listaLancamento">
           {!loading &&
@@ -138,22 +171,38 @@ const Despesas: React.FC = () => {
               let auxLancamento: Lancamento;
               auxLancamento = doc.data();
               //workaround pra converter do formato Timestamp que vem do Firestore
-              if( doc.data().data != undefined){                
-                auxLancamento.data =  new Date(doc.data().data.seconds*1000);         
+              if (doc.data().data != undefined) {
+                auxLancamento.data = new Date(doc.data().data.seconds * 1000);
               }
 
               //atribui a key pra termos o código de documento, o que vai facilitar na remoção e edição
               auxLancamento.key = doc.id;
 
               return (
-                <IonItem onClick={() => abrirFormDespesa(auxLancamento)}>
+                <IonItem
+                  routerLink={`/formdespesas/${auxLancamento.key}`}
+                  onClick={(lanc) => {
+                    setLancamento(auxLancamento);
+                  }}
+                >
                   <IonLabel>
-                    <h5><span style={estilo_despesa}>{auxLancamento.data.getDate()}</span><span>{auxLancamento.titulo}</span></h5>
-                    <p>{auxLancamento.grupo}</p>                    
+                    <h5>
+                      <span style={estilo_despesa}>
+                        {auxLancamento.data.getDate()}
+                      </span>
+                      <span>{auxLancamento.titulo}</span>
+                    </h5>
+                    <p>{auxLancamento.grupo}</p>
                   </IonLabel>
 
                   <h5>{doc.data().valor} </h5>
-                  <IonIcon icon={auxLancamento.tipo == Lancamento.TIPO_PAGA? checkmarkDoneOutline: checkmarkOutline} />
+                  <IonIcon
+                    icon={
+                      auxLancamento.tipo == Lancamento.TIPO_PAGA
+                        ? checkmarkDoneOutline
+                        : checkmarkOutline
+                    }
+                  />
                 </IonItem>
               );
             })}
@@ -161,7 +210,8 @@ const Despesas: React.FC = () => {
 
         <IonFab vertical="bottom" horizontal="end" slot="fixed">
           <IonFabButton
-            onClick={() => abrirFormDespesa(new Lancamento())}
+            // onClick={() => abrirFormDespesa(new Lancamento())}
+            routerLink={`/formdespesas/novo`}
             color="danger"
           >
             <IonIcon icon={addOutline} />

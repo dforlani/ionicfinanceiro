@@ -2,22 +2,28 @@ import firebase from "firebase";
 import { Lancamento } from "../pages/models/Lancamento";
 
 export class FirebaseLancamento {
+  
   salvar(lancamento: Lancamento) {
+    
     let collectionRef = firebase
       .firestore()
       .collection(Lancamento.COLLECTION_NAME);
 
     if (lancamento.key) {
       //se tem key, é um item pra editar
-
+      console.log('edica', lancamento.key);
+      
       collectionRef
         .doc(lancamento.key)
-        .set(lancamento, { merge: true })
+        .set({...lancamento, valor: Number(lancamento.valor), vezesRepetir: Number(lancamento.vezesRepetir)}, { merge: true })
         .catch((error) => console.log(error))
         .then((sucesso) => console.log(sucesso));
     } else {
+      console.log('inserir', lancamento.key);
       //senão, é um item pra adicionar
-      collectionRef.add(lancamento.toArray(lancamento));
+      collectionRef.add(lancamento.toArray(lancamento)) 
+      .catch((error) => console.log(error))
+      .then((sucesso) => console.log(sucesso));;
     }
   }
 
@@ -85,5 +91,15 @@ export class FirebaseLancamento {
       .where("data", "<=", dataFinal)
 
       .orderBy("data", "asc");
+  }
+
+  /**
+   * Busca por 1 lançamento
+   * @param key
+   */
+  buscar(
+    key: string
+  ): firebase.firestore.DocumentReference<firebase.firestore.DocumentData> {
+    return firebase.firestore().collection(Lancamento.COLLECTION_NAME).doc(key);
   }
 }
