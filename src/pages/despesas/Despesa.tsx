@@ -103,12 +103,7 @@ const Despesas: React.FC = () => {
     marginRight: "10px",
   } as React.CSSProperties;
 
-  const createValorBR = () => {
-    const config: BrMaskModel = new BrMaskModel();
-    config.phone = true;
-    let brMask: BrMaskDirective  = new BrMaskDirective (null, null);
-    return brMask.writeCreateValue("99999999999", config);
-  };
+
 
   return (
     <IonPage>
