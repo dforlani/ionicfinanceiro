@@ -56,6 +56,8 @@ const Recebidos: React.FC = () => {
     }
   );
 
+  const [currency, setCurrency] = useState<string>("BRL");
+
   const [showModal, setShowModal] = useState(false);
   const [saldoMes, setSaldoMes] = useState(Number());
   const [lancamento, setLancamento] = useState(new Lancamento());
@@ -133,7 +135,8 @@ const Recebidos: React.FC = () => {
                 <IonCol class="ion-text-center">Recebimentos do mês</IonCol>
               </IonRow>
               <IonRow>
-                <IonCol class="ion-text-center"> R$ {saldoMes}</IonCol>
+                <IonCol class="ion-text-center"> {new Intl.NumberFormat('br', 
+           { style: 'currency', currency: currency }).format(saldoMes)}</IonCol>
               </IonRow>
             </IonGrid>
           </h2>
@@ -186,7 +189,12 @@ const Recebidos: React.FC = () => {
                     <p>{auxLancamento.grupo}</p>
                   </IonLabel>
 
-                  <h5>{doc.data().valor} </h5>
+                  <h5>
+                    {new Intl.NumberFormat("br", {
+                      style: "currency",
+                      currency: currency,
+                    }).format(doc.data().valor)}{" "}
+                  </h5>
                   <IonIcon
                     icon={
                       auxLancamento.tipo == Lancamento.TIPO_RECEBIDO

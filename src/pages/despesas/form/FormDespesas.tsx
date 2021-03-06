@@ -257,7 +257,7 @@ const FormDespesas: React.FC<RouteComponentProps> = ({ match }) => {
         <IonItem>
           <IonLabel position="floating">Valor</IonLabel>
           <IonInput
-            type="number"
+            type="number"            
             value={lancamento.valor}
             onIonChange={(e) => setLancamentoIdentificado(e, "valor")}
           ></IonInput>

@@ -74,6 +74,8 @@ const Despesas: React.FC = () => {
     setShowModal(false);
   };
 
+  const [currency, setCurrency] = useState<string>('BRL');
+
   const calculaSomaMes = () => {
     let soma = 0;
     fb.listarDespesasByData(
@@ -137,7 +139,8 @@ const Despesas: React.FC = () => {
                 <IonCol class="ion-text-center">Despesas do mês</IonCol>
               </IonRow>
               <IonRow>
-                <IonCol class="ion-text-center"> R$ {saldoMes}</IonCol>
+                <IonCol class="ion-text-center"> {new Intl.NumberFormat('br', 
+           { style: 'currency', currency: currency }).format(saldoMes)}</IonCol>
               </IonRow>
             </IonGrid>
           </h2>
@@ -190,7 +193,8 @@ const Despesas: React.FC = () => {
                     <p>{auxLancamento.grupo}</p>
                   </IonLabel>
 
-                  <h5>{doc.data().valor} </h5>
+                  <h5>{new Intl.NumberFormat('br', 
+           { style: 'currency', currency: currency }).format(doc.data().valor)} </h5>
                   <IonIcon
                     icon={
                       auxLancamento.tipo == Lancamento.TIPO_PAGA

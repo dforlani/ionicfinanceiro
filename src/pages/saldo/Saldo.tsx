@@ -65,7 +65,7 @@ const Saldo: React.FC = () => {
 
   const [pagosMes, setPagosMes] = useState(Number());
   const [aPagarMes, setAPagarMes] = useState(Number());
-
+  const [currency, setCurrency] = useState<string>("BRL");
   const calculaSaldos = () => {
     //RECEBIDOS
     let somaRecebido = 0;
@@ -156,7 +156,8 @@ const Saldo: React.FC = () => {
                 <IonCol class="ion-text-center">Saldo do mês</IonCol>
               </IonRow>
               <IonRow>
-                <IonCol class="ion-text-center"> R$ {saldoMes}</IonCol>
+                <IonCol class="ion-text-center"> {new Intl.NumberFormat('br', 
+           { style: 'currency', currency: currency }).format(saldoMes)}</IonCol>
               </IonRow>
             </IonGrid>
           </h2>
@@ -176,11 +177,13 @@ const Saldo: React.FC = () => {
             <IonGrid>
               <IonRow>
                 <IonCol>Recebidos</IonCol>
-                <IonCol class="ion-text-right">R$ {recebidosMes}</IonCol>
+                <IonCol class="ion-text-right">{new Intl.NumberFormat('br', 
+           { style: 'currency', currency: currency }).format(recebidosMes)} </IonCol>
               </IonRow>
               <IonRow>
                 <IonCol>À Receber</IonCol>
-                <IonCol class="ion-text-right">R$ {aReceberMes}</IonCol>
+                <IonCol class="ion-text-right">{new Intl.NumberFormat('br', 
+           { style: 'currency', currency: currency }).format(aReceberMes)} </IonCol>
               </IonRow>
             </IonGrid>
           </IonCardContent>
@@ -198,11 +201,13 @@ const Saldo: React.FC = () => {
             <IonGrid>
               <IonRow>
                 <IonCol>Pagos</IonCol>
-                <IonCol class="ion-text-right">R$ {pagosMes}</IonCol>
+                <IonCol class="ion-text-right">{new Intl.NumberFormat('br', 
+           { style: 'currency', currency: currency }).format(pagosMes)} </IonCol>
               </IonRow>
               <IonRow>
                 <IonCol>À Pagar</IonCol>
-                <IonCol class="ion-text-right">R$ {aPagarMes}</IonCol>
+                <IonCol class="ion-text-right">{new Intl.NumberFormat('br', 
+           { style: 'currency', currency: currency }).format(aPagarMes)} </IonCol>
               </IonRow>
             </IonGrid>
           </IonCardContent>
