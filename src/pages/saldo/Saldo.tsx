@@ -47,6 +47,86 @@ import { Calendario } from "../models/Calendario";
 import { FirebaseLancamento } from "../../services/FirebaseLancamento";
 import { Lancamento } from "../models/Lancamento";
 
+
+//////////ADMOB////////////////////
+import { Plugins } from '@capacitor/core';
+import { AdOptions, AdSize, AdPosition } from 'capacitor-admob';
+const { AdMob, Toast } = Plugins;
+AdMob.initialize('ca-app-pub-2885273018066682~9872065483');
+// This Banner AD have bottom margin to avoid TabBar Overlaping for TabBar 
+const showTabBarBanner = () => {
+
+  
+  const options: AdOptions = {
+    adId: 'ca-app-pub-3940256099942544/6300978111',
+    adSize: AdSize.SMART_BANNER,
+    position: AdPosition.BOTTOM_CENTER,
+    hasTabBar: true,  // make it true if you have TabBar Layout.
+    tabBarHeight: 56  // you can assign custom margin in pixel default is 56
+  };
+
+  // Show Banner Ad
+  AdMob.showBanner(options)
+    .then(
+      async (value: any) => {
+        console.log(value);  // true
+        await Toast.show({
+          text: 'Showing Banner AD.'
+        })
+      },
+      (error: any) => {
+        console.error(error); // show error
+      }
+    );
+  // Subscibe Banner Event Listener
+  AdMob.addListener('onAdLoaded', async (info: boolean) => {
+    console.log('Showing TabBar Banner AD.');
+  });
+}
+
+const hideBanner = () => {
+
+  AdMob.hideBanner().then(
+    async (value: any) => {
+      await Toast.show({
+        text: 'Banner AD Hidden'
+      })
+      console.log(value);  // true
+    },
+    (error: any) => {
+      console.error(error); // show error
+    }
+  );
+}
+
+const resumeBanner = () => {
+
+  // Resume the banner, show it after hide
+  AdMob.resumeBanner().then(
+    (value: any) => {
+      console.log(value);  // true
+    },
+    (error: any) => {
+      console.error(error); // show error
+    }
+  );
+}
+
+const removeBanner = () => {
+
+  // Destroy the banner, remove it from screen.
+  AdMob.removeBanner().then(
+    (value: any) => {
+      console.log(value);  // true
+    },
+    (error: any) => {
+      console.error(error); // show error
+    }
+  );
+}
+
+/////////////FIM ADMOB///////////////
+
 const Saldo: React.FC = () => {
   let history = useHistory();
   const chamarRecebidos = () => {
@@ -212,6 +292,10 @@ const Saldo: React.FC = () => {
             </IonGrid>
           </IonCardContent>
         </IonCard>
+        <IonButton expand="block" className="ion-margin-bottom" color="success" onClick={showTabBarBanner}>Show Banner Ad</IonButton>
+          <IonButton expand="block" className="ion-margin-bottom" color="medium" onClick={hideBanner}>Hide Banner Ad</IonButton>
+          <IonButton expand="block" className="ion-margin-bottom" color="success" onClick={resumeBanner}>Resume Banner Ad</IonButton>
+          <IonButton expand="block" className="ion-margin-bottom" color="danger" onClick={removeBanner}>Remove Banner Ad</IonButton>
       </IonContent>
     </IonPage>
   );
