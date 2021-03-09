@@ -52,7 +52,9 @@ import { Lancamento } from "../models/Lancamento";
 import { Plugins } from '@capacitor/core';
 import { AdOptions, AdSize, AdPosition } from 'capacitor-admob';
 const { AdMob, Toast } = Plugins;
-AdMob.initialize('ca-app-pub-2885273018066682~9872065483');
+
+
+AdMob.initialize('ca-app-pub-2885273018066682~9872065483').then(()=>{  showTabBarBanner()});
 // This Banner AD have bottom margin to avoid TabBar Overlaping for TabBar 
 const showTabBarBanner = () => {
 
@@ -64,22 +66,26 @@ const showTabBarBanner = () => {
     hasTabBar: true,  // make it true if you have TabBar Layout.
     tabBarHeight: 56  // you can assign custom margin in pixel default is 56
   };
-
+ 
   // Show Banner Ad
   AdMob.showBanner(options)
     .then(
       async (value: any) => {
         console.log(value);  // true
-        await Toast.show({
-          text: 'Showing Banner AD.'
-        })
+    
+        // await Toast.show({
+        //   text: 'Showing Banner AD.'
+        // })
       },
       (error: any) => {
+   
         console.error(error); // show error
       }
     );
+
   // Subscibe Banner Event Listener
   AdMob.addListener('onAdLoaded', async (info: boolean) => {
+
     console.log('Showing TabBar Banner AD.');
   });
 }
@@ -128,6 +134,10 @@ const removeBanner = () => {
 /////////////FIM ADMOB///////////////
 
 const Saldo: React.FC = () => {
+ 
+
+  /////////////////////////////////////////
+
   let history = useHistory();
   const chamarRecebidos = () => {
     history.push("/tab2");
@@ -171,6 +181,8 @@ const Saldo: React.FC = () => {
         setRecebidosMes(somaRecebido);
         setAReceberMes(somaAReceber);
         //setSaldoMes(somaAReceber + somaRecebido - somaPago - somaAPagar);
+
+      
       })
       .catch(function (error) {
         console.log("Error getting documents: ", error);
@@ -195,6 +207,7 @@ const Saldo: React.FC = () => {
         setPagosMes(somaPago);
         setAPagarMes(somaAPagar);
         setSaldoMes(somaAReceber + somaRecebido - somaPago - somaAPagar);
+
       })
       .catch(function (error) {
         console.log("Error getting documents: ", error);
@@ -204,7 +217,7 @@ const Saldo: React.FC = () => {
   calculaSaldos();
 
   return (
-    <IonPage>
+    <IonPage >
       <IonHeader>
         <IonToolbar>
           <IonTitle class="ion-text-center">Financeiro</IonTitle>
@@ -233,7 +246,7 @@ const Saldo: React.FC = () => {
           <h2>
             <IonGrid>
               <IonRow>
-                <IonCol class="ion-text-center">Saldo do mês</IonCol>
+                <IonCol class="ion-text-center">Saldo4 do mês</IonCol>
               </IonRow>
               <IonRow>
                 <IonCol class="ion-text-center"> {new Intl.NumberFormat('br', 
@@ -292,13 +305,12 @@ const Saldo: React.FC = () => {
             </IonGrid>
           </IonCardContent>
         </IonCard>
-        <IonButton expand="block" className="ion-margin-bottom" color="success" onClick={showTabBarBanner}>Show Banner Ad</IonButton>
-          <IonButton expand="block" className="ion-margin-bottom" color="medium" onClick={hideBanner}>Hide Banner Ad</IonButton>
-          <IonButton expand="block" className="ion-margin-bottom" color="success" onClick={resumeBanner}>Resume Banner Ad</IonButton>
-          <IonButton expand="block" className="ion-margin-bottom" color="danger" onClick={removeBanner}>Remove Banner Ad</IonButton>
+        
       </IonContent>
     </IonPage>
   );
+
+  
 };
 
 export default Saldo;
