@@ -132,11 +132,30 @@ const Recebidos: React.FC = () => {
           <h2>
             <IonGrid>
               <IonRow>
-                <IonCol class="ion-text-center">Recebimentos do mês</IonCol>
-              </IonRow>
-              <IonRow>
-                <IonCol class="ion-text-center"> {new Intl.NumberFormat('br', 
-           { style: 'currency', currency: currency }).format(saldoMes)}</IonCol>
+                <IonCol>
+                  <IonRow>
+                    <IonCol class="ion-text-center">Total</IonCol>
+                  </IonRow>
+                  <IonRow>
+                    <IonCol class="ion-text-center">
+                      {" "}
+                      {new Intl.NumberFormat("br", {
+                        style: "currency",
+                        currency: currency,
+                      }).format(saldoMes)}
+                    </IonCol>
+                  </IonRow>
+                </IonCol>
+                <IonCol>
+                  <IonFab vertical="center" horizontal="end">
+                    <IonFabButton
+                      routerLink={`/formrecebimentos/novo`}
+                      color="light"
+                    >
+                      <IonIcon icon={addOutline} />
+                    </IonFabButton>
+                  </IonFab>
+                </IonCol>
               </IonRow>
             </IonGrid>
           </h2>
@@ -148,15 +167,6 @@ const Recebidos: React.FC = () => {
             <IonTitle size="large">Tab 2</IonTitle>
           </IonToolbar>
         </IonHeader>
-
-        {/* <IonModal isOpen={showModal} cssClass="my-custom-class">
-          <FormDespesas            
-            doc={lancamento}
-            doClose={() => {
-              closeModal();
-            }}
-          />
-        </IonModal> */}
 
         <IonList id="listaLancamento">
           {!loading &&
@@ -206,12 +216,6 @@ const Recebidos: React.FC = () => {
               );
             })}
         </IonList>
-
-        <IonFab vertical="bottom" horizontal="end" slot="fixed">
-          <IonFabButton routerLink={`/formrecebimentos/novo`} color="success">
-            <IonIcon icon={addOutline} />
-          </IonFabButton>
-        </IonFab>
       </IonContent>
     </IonPage>
   );

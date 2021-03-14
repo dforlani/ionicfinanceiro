@@ -10,6 +10,7 @@ import {
   IonGrid,
   IonHeader,
   IonIcon,
+  IonImg,
   IonItem,
   IonLabel,
   IonList,
@@ -23,10 +24,10 @@ import {
   IonTitle,
   IonToolbar,
 } from "@ionic/react";
-import { BrMaskDirective, BrMaskerModule, BrMaskModel } from "br-mask";
-import "./Despesa.css";
+import "./Boletos.css";
 import { Timestamp } from "@google-cloud/firestore";
 import {
+  camera,
   addOutline,
   checkmarkDoneOutline,
   checkmarkOutline,
@@ -35,21 +36,20 @@ import {
   triangle,
 } from "ionicons/icons";
 import { useCollection } from "react-firebase-hooks/firestore";
-import { FirebaseLancamento } from "../../services/FirebaseLancamento";
-import { Lancamento } from "../models/Lancamento";
-import FormDespesas from "./form/FormDespesas";
+import { FirebaseBoleto } from "../../services/FirebaseBoleto";
+import { Boleto } from "../models/Boleto";
+import FormRecebidos from "./form/FormBoletos";
 import { Calendario } from "../models/Calendario";
 import { isConstructorDeclaration } from "typescript";
 import { IonReactRouter } from "@ionic/react-router";
 import { Redirect, Route } from "react-router";
-import Props from "./Props";
 
-const Despesas: React.FC = () => {
-  let fb: FirebaseLancamento = new FirebaseLancamento();
+const Boletos: React.FC = () => {
+  let fb: FirebaseBoleto = new FirebaseBoleto();
 
   const [calendario, setCalendario] = useState<Calendario>(new Calendario());
   const [value, loading] = useCollection(
-    fb.listarDespesasByData(
+    fb.listarRecebidosByData(
       calendario.getDatePrimeiroDiaMes(),
       calendario.getDateUltimoDiaMes()
     ),
@@ -58,15 +58,14 @@ const Despesas: React.FC = () => {
     }
   );
 
+  const [currency, setCurrency] = useState<string>("BRL");
+
   const [showModal, setShowModal] = useState(false);
   const [saldoMes, setSaldoMes] = useState(Number());
-  const [lancamento, setLancamento] = useState(new Lancamento());
-  //esta tela vai salvar os lançamentos como despesas
-  if (lancamento.key == "" || lancamento.key == undefined)
-    lancamento.tipo = Lancamento.TIPO_PAGA;
+  const [boleto, setBoleto] = useState(new Boleto());
 
-  const abrirFormDespesa = (lanc: Lancamento) => {
-    setLancamento(lanc);
+  const abrirFormBoletos = (lanc: Boleto) => {
+    setBoleto(lanc);
     setShowModal(true);
   };
 
@@ -74,22 +73,16 @@ const Despesas: React.FC = () => {
     setShowModal(false);
   };
 
-  const [currency, setCurrency] = useState<string>("BRL");
-
   const calculaSomaMes = () => {
     let soma = 0;
-    fb.listarDespesasByData(
+    fb.listarRecebidosByData(
       calendario.getDatePrimeiroDiaMes(),
       calendario.getDateUltimoDiaMes()
     )
       .get()
       .then(function (querySnapshot) {
         querySnapshot.forEach(function (doc) {
-          // doc.data() is never undefined for query doc snapshots
-
-          if (!isNaN(doc.data().valor)) {
-            soma += doc.data().valor;
-          }
+          soma = soma + 1;
         });
         setSaldoMes(soma);
       })
@@ -100,20 +93,23 @@ const Despesas: React.FC = () => {
 
   calculaSomaMes();
 
-  const estilo_despesa = {
+  const estilo_boleto = {
     color: "green",
     marginRight: "10px",
+  } as React.CSSProperties;
+
+  const fotoClass = {
+    height: "50px",
   } as React.CSSProperties;
 
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Despesas</IonTitle>
+          <IonTitle>Boletos</IonTitle>
         </IonToolbar>
-        <IonToolbar color="danger">
-          
-          <IonItem lines="none" color="danger">
+        <IonToolbar color="warning">
+          <IonItem lines="none" color="warning">
             <IonIcon
               icon={chevronBack}
               slot="start"
@@ -132,27 +128,42 @@ const Despesas: React.FC = () => {
               }}
             />
           </IonItem>
-
           <h2>
             <IonGrid>
               <IonRow>
                 <IonCol>
                   <IonRow>
-                    <IonCol class="ion-text-center">Total</IonCol>
+                    <IonCol class="ion-text-center">Quantidade</IonCol>
                   </IonRow>
                   <IonRow>
                     <IonCol class="ion-text-center">
-                      {" "}
-                      {new Intl.NumberFormat("br", {
+                      {saldoMes}
+                      {/* {new Intl.NumberFormat("br", {
                         style: "currency",
                         currency: currency,
-                      }).format(saldoMes)}
+                      }).format(saldoMes)} */}
                     </IonCol>
                   </IonRow>
                 </IonCol>
                 <IonCol>
-                  <IonFab vertical="center" horizontal="end" >
-                    <IonFabButton routerLink={`/formdespesas/novo`} color="light">
+                  <IonFab
+                    vertical="center"
+                    horizontal="start"
+                    slot="fixed"
+                    edge
+                  >
+                    <IonFabButton
+                      routerLink={`/formboletos/novo`}
+                      color="success"
+                    >
+                      <IonIcon icon={addOutline} />
+                    </IonFabButton>
+                  </IonFab>
+                  <IonFab vertical="center" horizontal="end">
+                    <IonFabButton
+                      routerLink={`/formboletos/novo`}
+                      color="light"
+                    >
                       <IonIcon icon={addOutline} />
                     </IonFabButton>
                   </IonFab>
@@ -162,11 +173,10 @@ const Despesas: React.FC = () => {
           </h2>
         </IonToolbar>
       </IonHeader>
-
       <IonContent fullscreen>
         <IonHeader collapse="condense">
           <IonToolbar>
-            <IonTitle size="large">Tab 2</IonTitle>
+            <IonTitle size="large">Boleto</IonTitle>
           </IonToolbar>
         </IonHeader>
 
@@ -174,55 +184,53 @@ const Despesas: React.FC = () => {
           {!loading &&
             value &&
             value.docs.map((doc: any) => {
-              let auxLancamento: Lancamento;
-              auxLancamento = doc.data();
+              let auxBoleto: Boleto;
+              auxBoleto = doc.data();
               //workaround pra converter do formato Timestamp que vem do Firestore
               if (doc.data().data != undefined) {
-                auxLancamento.data = new Date(doc.data().data.seconds * 1000);
+                auxBoleto.data = new Date(doc.data().data.seconds * 1000);
               }
 
               //atribui a key pra termos o código de documento, o que vai facilitar na remoção e edição
-              auxLancamento.key = doc.id;
+              auxBoleto.key = doc.id;
 
               return (
                 <IonItem
-                  routerLink={`/formdespesas/${auxLancamento.key}`}
+                  routerLink={`/formboletos/${auxBoleto.key}`}
                   onClick={(lanc) => {
-                    setLancamento(auxLancamento);
+                    setBoleto(auxBoleto);
                   }}
                 >
-                  <IonLabel>
-                    <h5>
-                      <span style={estilo_despesa}>
-                        {auxLancamento.data.getDate()}
-                      </span>
-                      <span>{auxLancamento.titulo}</span>
-                    </h5>
-                    <p>{auxLancamento.grupo}</p>
-                  </IonLabel>
+                  <IonRow>
+                    <IonCol>
+                      <IonLabel>
+                        <h5>
+                          <span style={estilo_boleto}>
+                            {auxBoleto.data.getDate()}
+                          </span>
+                          <span>{auxBoleto.titulo}</span>
+                        </h5>
+                        <p>{auxBoleto.grupo}</p>
+                      </IonLabel>
 
-                  <h5>
-                    {new Intl.NumberFormat("br", {
-                      style: "currency",
-                      currency: currency,
-                    }).format(doc.data().valor)}{" "}
-                  </h5>
-                  <IonIcon
-                    icon={
-                      auxLancamento.tipo == Lancamento.TIPO_PAGA
-                        ? checkmarkDoneOutline
-                        : checkmarkOutline
-                    }
-                  />
+                      <h5>
+                        {new Intl.NumberFormat("br", {
+                          style: "currency",
+                          currency: currency,
+                        }).format(doc.data().valor)}{" "}
+                      </h5>
+                    </IonCol>
+                    <IonCol>
+                      <IonImg style={fotoClass} src={auxBoleto.foto} />
+                    </IonCol>
+                  </IonRow>
                 </IonItem>
               );
             })}
         </IonList>
-
-    
       </IonContent>
     </IonPage>
   );
 };
 
-export default Despesas;
+export default Boletos;
