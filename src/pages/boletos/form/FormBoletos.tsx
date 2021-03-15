@@ -251,7 +251,7 @@ const FormBoletos: React.FC<RouteComponentProps> = ({ match }) => {
           ></IonInput>
         </IonItem>
         <IonItem>
-          <IonLabel>Data do Recebimento</IonLabel>
+          <IonLabel>Data do Vencimento</IonLabel>
           <IonDatetime
             displayFormat="DD/MM/YYYY"
             value={boleto.data.toDateString()}
